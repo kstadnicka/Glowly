@@ -1,10 +1,12 @@
 package ks.glowlyapp.user;
 
 import ks.glowlyapp.user.dto.UserResponseDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserResponseDtoMapper {
 
-    static UserResponseDto map(User user){
+    public UserResponseDto map(User user){
         return new UserResponseDto(
                 user.getLastName(),
                 user.getFirstName(),
