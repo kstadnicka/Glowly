@@ -18,9 +18,9 @@ public class Business {
     private String name;
     @ManyToOne
     private Owner owner;
-    @OneToMany(mappedBy = "business")
-    private List<Address> addresses = new ArrayList<>();
-    @OneToMany(mappedBy = "business")
+    @OneToOne
+    Address address;
+    @OneToMany(mappedBy = "offer")
     private List<Offer> offersList = new ArrayList<>();
 
 }
