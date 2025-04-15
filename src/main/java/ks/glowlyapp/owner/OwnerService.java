@@ -1,11 +1,9 @@
 package ks.glowlyapp.owner;
 
 import ks.glowlyapp.business.Business;
+import ks.glowlyapp.business.BusinessRepository;
 import ks.glowlyapp.owner.dto.OwnerRegistrationDto;
 import ks.glowlyapp.owner.dto.OwnerResponseDto;
-import ks.glowlyapp.user.User;
-import ks.glowlyapp.user.dto.UserRegistrationDto;
-import ks.glowlyapp.user.dto.UserResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +14,14 @@ import java.util.Optional;
 @Service
 public class OwnerService {
     private final OwnerRepository ownerRepository;
+    private final BusinessRepository businessRepository;
     private final OwnerResponseDtoMapper ownerResponseDtoMapper;
     private final OwnerRegistrationDtoMapper ownerRegistrationDtoMapper;
 
 
-    public OwnerService(OwnerRepository ownerRepository, OwnerResponseDtoMapper ownerResponseDtoMapper, OwnerRegistrationDtoMapper ownerRegistrationDtoMapper) {
+    public OwnerService(OwnerRepository ownerRepository, BusinessRepository businessRepository, OwnerResponseDtoMapper ownerResponseDtoMapper, OwnerRegistrationDtoMapper ownerRegistrationDtoMapper) {
         this.ownerRepository = ownerRepository;
+        this.businessRepository = businessRepository;
         this.ownerResponseDtoMapper = ownerResponseDtoMapper;
         this.ownerRegistrationDtoMapper = ownerRegistrationDtoMapper;
     }
@@ -55,29 +55,26 @@ public class OwnerService {
         Owner owner = new Owner();
         owner.setEmail(ownerRegistrationDto.getEmail());
         owner.setPassword(ownerRegistrationDto.getPassword());
+        owner.setPhoneNumber(ownerRegistrationDto.getPhoneNumber());
         ownerRepository.save(owner);
     }
 
     @Transactional
-    public void updateOwnerDetails(OwnerResponseDto ownerResponseDto, long id){
-        Owner ownerToUpdate = ownerRepository.findById(id)
-                .orElseGet(Owner::new);
-        ownerToUpdate.setFirstName(ownerResponseDto.getFirstName());
-        ownerToUpdate.setLastName(ownerResponseDto.getLastName());
-        ownerToUpdate.setEmail(ownerResponseDto.getEmail());
-        ownerToUpdate.setPhoneNumber(ownerResponseDto.getPhoneNumber());
-        List<Business> newBusinessList = ownerResponseDto.getBusinessList();
+    public void updateOwnerDetails(OwnerRegistrationDto ownerRegistrationDto, long id){
+      Owner ownerToUpdate = ownerRepository.findById(id)
+              .orElseThrow(()-> new RuntimeException("Owner not found"));
 
-        if (newBusinessList !=null){
-            for (Business newBusiness : newBusinessList) {
-                if (!ownerToUpdate.getBusinessList().contains(newBusiness)) {
-                    ownerToUpdate.getBusinessList().add(newBusiness);
-                }
-            }
-            ownerToUpdate.getBusinessList().removeIf(existingBusiness ->
-                    !newBusinessList.contains(existingBusiness));
-        }
-        ownerRepository.save(ownerToUpdate);
+      ownerToUpdate.setEmail(ownerRegistrationDto.getEmail());
+      ownerToUpdate.setPhoneNumber(ownerRegistrationDto.getPhoneNumber());
+      ownerToUpdate.setPassword(ownerRegistrationDto.getPassword());
+      List<Business> updateBusinessList = Optional.ofNullable(ownerRegistrationDto.getBusinessIds())
+              .orElse(List.of())
+              .stream()
+              .map(businessRepository::findById)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .toList();
+      ownerToUpdate.setBusinessList(updateBusinessList);
     }
 
     @Transactional
