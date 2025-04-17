@@ -58,7 +58,7 @@ public class UserService {
     @Transactional
     public void updateUserDetails(UserResponseDto userResponseDto,long id){
         User userToUpdate = userRepository.findById(id)
-                .orElseGet(User::new);
+                .orElseThrow(()->new RuntimeException("User not found."));
         userToUpdate.setFirstName(userResponseDto.getFirstName());
         userToUpdate.setLastName(userResponseDto.getLastName());
         userToUpdate.setEmail(userResponseDto.getEmail());

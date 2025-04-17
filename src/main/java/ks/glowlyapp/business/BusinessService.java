@@ -60,7 +60,7 @@ public class BusinessService {
     @Transactional
     public void updateBusinessDetails(BusinessDto businessDto, long id){
         Business businessToUpdate = businessRepository.findById(id)
-                .orElseGet(Business::new);
+                .orElseThrow(()->new RuntimeException("Business not found."));
 
         businessToUpdate.setName(businessDto.getName());
         businessToUpdate.setAddress(businessDto.getAddress());
