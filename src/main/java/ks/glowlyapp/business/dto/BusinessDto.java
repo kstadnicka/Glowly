@@ -12,6 +12,9 @@ public class BusinessDto {
     Address address;
     List<OfferShortDto> offersList;
 
+    public BusinessDto() {
+    }
+
     public BusinessDto(String name, Address address, List<OfferShortDto> offersList) {
         this.name = name;
         this.address = address;

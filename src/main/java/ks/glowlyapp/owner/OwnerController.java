@@ -1,6 +1,7 @@
 package ks.glowlyapp.owner;
 
 import ks.glowlyapp.owner.dto.OwnerRegistrationDto;
+import ks.glowlyapp.owner.dto.OwnerResponseDto;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +30,7 @@ public class OwnerController {
 
     @GetMapping("owners/{id}")
     public String getOwnerById(@PathVariable long id, Model model){
-        Optional<ks.glowlyapp.owner.dto.OwnerResponseDto> ownerById = ownerService.getOwnerById(id);
+        Optional<OwnerResponseDto> ownerById = ownerService.getOwnerById(id);
         ownerById.ifPresent(owner->model.addAttribute("owner", owner));
         return "owner";
     }

@@ -8,6 +8,7 @@ public class OfferShortDtoMapper {
 
     public OfferShortDto map(Offer offer){
         return new OfferShortDto(
+                offer.getId(),
                 offer.getName()
         );
     }

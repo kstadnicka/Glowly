@@ -13,6 +13,7 @@ public class BusinessDtoMapper {
                 business.getAddress(),
                 business.getOffersList().stream()
                         .map(offer -> new OfferShortDto(
+                                offer.getId(),
                                 offer.getName()
                         ))
                         .toList()
