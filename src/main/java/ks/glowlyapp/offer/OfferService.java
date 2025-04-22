@@ -74,15 +74,7 @@ public class OfferService {
     public void updateOfferDetails(OfferDto offerDto, long id){
         Offer offerToUpdate = offerRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Offer not found"));
-        if (offerDto == null) {
-            throw new IllegalArgumentException("Offer data cannot be null");
-        }
-        if (offerDto.getName() == null || offerDto.getName().isBlank()) {
-            throw new IllegalArgumentException("Offer name cannot be empty");
-        }
-        if (offerDto.getPrice() < 0) {
-            throw new IllegalArgumentException("Offer price cannot be negative");
-        }
+        validateOfferData(offerDto);
         offerToUpdate.setName(offerDto.getName());
         offerToUpdate.setDescription(offerDto.getDescription());
         offerToUpdate.setPrice(offerDto.getPrice());
@@ -95,5 +87,17 @@ public class OfferService {
             throw new RuntimeException("Offer not found");
         }
         offerRepository.deleteById(id);
+    }
+
+    private static void validateOfferData(OfferDto offerDto) {
+        if (offerDto == null) {
+            throw new IllegalArgumentException("Offer data cannot be null");
+        }
+        if (offerDto.getName() == null || offerDto.getName().isBlank()) {
+            throw new IllegalArgumentException("Offer name cannot be empty");
+        }
+        if (offerDto.getPrice() < 0) {
+            throw new IllegalArgumentException("Offer price cannot be negative");
+        }
     }
 }
