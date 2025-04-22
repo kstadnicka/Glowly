@@ -4,6 +4,7 @@ import ks.glowlyapp.business.Business;
 import ks.glowlyapp.business.BusinessRepository;
 import ks.glowlyapp.offer.dto.OfferDto;
 import ks.glowlyapp.offer.dto.OfferShortDto;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,17 +37,13 @@ public class OfferService {
                 .map(offerDtoMapper::map);
     }
 
-    public Optional<OfferDto> getOfferByPrice(double price) {
-        if (price < 0) {
-            throw new IllegalArgumentException("Price cannot be negative");
-        }
-        return offerRepository.findOfferByPrice(price)
-                .map(offerDtoMapper::map);
-    }
 
-    public Optional<OfferDto> getOfferById(long id){
-        return offerRepository.findById(id)
-                .map(offerDtoMapper::map);
+    public List<OfferDto> getOffersSortedByPrice(boolean ascending) {
+        Sort sort = ascending ? Sort.by("price").ascending() : Sort.by("price").descending();
+
+        return offerRepository.findAll(sort).stream()
+                .map(offerDtoMapper::map)
+                .toList();
     }
 
     @Transactional

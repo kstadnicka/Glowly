@@ -29,7 +29,7 @@ public class OwnerController {
     }
 
     @GetMapping("owners/{id}")
-    public String getOwnerById(@PathVariable long id, Model model){
+    public String findOwnerById(@PathVariable long id, Model model){
         Optional<OwnerResponseDto> ownerById = ownerService.getOwnerById(id);
         ownerById.ifPresent(owner->model.addAttribute("owner", owner));
         return "owner";

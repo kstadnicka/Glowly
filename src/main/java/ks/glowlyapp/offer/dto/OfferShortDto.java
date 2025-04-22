@@ -7,6 +7,9 @@ public class OfferShortDto {
     Long id;
     String name;
 
+    public OfferShortDto() {
+    }
+
     public OfferShortDto(Long id, String name) {
         this.id = id;
         this.name = name;

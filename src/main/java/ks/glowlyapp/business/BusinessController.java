@@ -46,11 +46,11 @@ public class BusinessController {
     public String updateBusiness(@RequestParam Long id, BusinessDto businessDto, RedirectAttributes redirectAttributes){
         businessService.updateBusinessDetails(businessDto,id);
         redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Pomyślnie zaktualizowano informacje!");
-        return "redirect:/business/{id}";
+        return "redirect:/business";
     }
 
     @PostMapping("/business/delete")
-    public String deleteBusiness(@RequestParam Long id, BusinessDto businessDto, RedirectAttributes redirectAttributes){
+    public String deleteBusiness(@RequestParam Long id, RedirectAttributes redirectAttributes){
         businessService.deleteBusiness(id);
         redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Firma usunięta");
         return "redirect:/";
