@@ -2,9 +2,10 @@ package ks.glowlyapp.appointment.dto;
 
 import ks.glowlyapp.address.Address;
 import ks.glowlyapp.offer.Offer;
+import lombok.Data;
 
 import java.time.LocalDateTime;
-
+@Data
 public class AppointmentDto {
     LocalDateTime appointmentData;
     Offer offer;
