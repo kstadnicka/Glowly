@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class AppointmentDtoMapper {
     public AppointmentDto map(Appointment appointment){
         return new AppointmentDto(
-                appointment.getAppointmentData(),
+                appointment.getData(),
                 appointment.getOffer(),
                 appointment.getAddress()
         );

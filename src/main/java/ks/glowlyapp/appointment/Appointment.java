@@ -17,7 +17,7 @@ public class Appointment {
     Long id;
     @ManyToOne
     User user;
-    LocalDateTime appointmentData;
+    LocalDateTime data;
     @ManyToOne
     Offer offer;
     @ManyToOne

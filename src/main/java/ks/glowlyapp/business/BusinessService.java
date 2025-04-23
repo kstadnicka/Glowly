@@ -30,7 +30,8 @@ public class BusinessService {
 
     public Optional<BusinessDto> findBusinessByName(String name){
         Objects.requireNonNull(name,"Name cannot be null");
-        return businessRepository.findBusinessesByName(name);
+        return businessRepository.findBusinessesByName(name)
+                .map(businessDtoMapper::map);
     }
 
     public Optional<BusinessDto> findBusinessById(Long id){
