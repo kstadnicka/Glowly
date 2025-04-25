@@ -3,6 +3,7 @@ package ks.glowlyapp.user;
 
 import ks.glowlyapp.user.dto.UserRegistrationDto;
 import ks.glowlyapp.user.dto.UserResponseDto;
+import ks.glowlyapp.validation.ValidationUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,23 +15,26 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserRegistrationDtoMapper userRegistrationDtoMapper;
     private final UserResponseDtoMapper userResponseDtoMapper;
+    private final ValidationUtil validationUtil;
 
     public UserService(UserRepository userRepository,
                        UserRegistrationDtoMapper userRegistrationDtoMapper,
-                       UserResponseDtoMapper userResponseDtoMapper) {
+                       UserResponseDtoMapper userResponseDtoMapper,
+                       ValidationUtil validationUtil) {
         this.userRepository = userRepository;
         this.userRegistrationDtoMapper = userRegistrationDtoMapper;
         this.userResponseDtoMapper = userResponseDtoMapper;
+        this.validationUtil = validationUtil;
     }
 
     public Optional<UserRegistrationDto> findUserByEmail(String email) {
-        validateNotNull(email, "Email");
+        validationUtil.validateNotNull(email, "Email");
         return userRepository.findUserByEmail(email)
                 .map(userRegistrationDtoMapper::map);
     }
 
     public Optional<UserResponseDto> findUserByLastName(String lastName) {
-        validateNotNull(lastName, "Last name");
+        validationUtil.validateNotNull(lastName, "Last name");
         return userRepository.findUserByLastName(lastName)
                 .map(userResponseDtoMapper::map);
     }
@@ -48,24 +52,24 @@ public class UserService {
     }
 
     @Transactional
-    public void createNewUser(UserRegistrationDto userRegistrationDto) {
-        validateRegistrationDto(userRegistrationDto);
+    public void createNewUser(UserRegistrationDto dto) {
+        validateUserRegistrationDto(dto);
         User user = new User();
-        user.setEmail(userRegistrationDto.getEmail());
-        user.setPassword(userRegistrationDto.getPassword());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
         userRepository.save(user);
     }
 
     @Transactional
-    public void updateUserDetails(UserResponseDto userResponseDto, long id) {
-        validateResponseDto(userResponseDto);
+    public void updateUserDetails(UserResponseDto dto, long id) {
+        validateUserResponseDto(dto);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setFirstName(userResponseDto.getFirstName());
-        user.setLastName(userResponseDto.getLastName());
-        user.setEmail(userResponseDto.getEmail());
-        user.setPhoneNumber(userResponseDto.getPhoneNumber());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
+        user.setPhoneNumber(dto.getPhoneNumber());
         userRepository.save(user);
     }
 
@@ -74,23 +78,16 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    private void validateNotNull(Object value, String fieldName) {
-        if (value == null) {
-            throw new IllegalArgumentException(fieldName + " cannot be null");
-        }
+    private void validateUserRegistrationDto(UserRegistrationDto dto) {
+        validationUtil.validateNotNull(dto, "UserRegistrationDto");
+        validationUtil.validateEmailAndPassword(dto.getEmail(), dto.getPassword());
     }
 
-    private void validateRegistrationDto(UserRegistrationDto dto) {
-        if (dto == null) throw new IllegalArgumentException("UserRegistrationDto cannot be null");
-        validateNotNull(dto.getEmail(), "Email");
-        validateNotNull(dto.getPassword(), "Password");
-    }
-
-    private void validateResponseDto(UserResponseDto dto) {
-        if (dto == null) throw new IllegalArgumentException("UserResponseDto cannot be null");
-        validateNotNull(dto.getFirstName(), "First name");
-        validateNotNull(dto.getLastName(), "Last name");
-        validateNotNull(dto.getEmail(), "Email");
-        validateNotNull(dto.getPhoneNumber(), "Phone number");
+    private void validateUserResponseDto(UserResponseDto dto) {
+        validationUtil.validateNotNull(dto, "UserResponseDto");
+        validationUtil.validateNotNull(dto.getFirstName(), "First name");
+        validationUtil.validateNotNull(dto.getLastName(), "Last name");
+        validationUtil.validateNotNull(dto.getEmail(), "Email");
+        validationUtil.validatePhoneNumber(dto.getPhoneNumber());
     }
 }
