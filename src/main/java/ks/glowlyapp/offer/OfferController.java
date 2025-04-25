@@ -1,6 +1,5 @@
 package ks.glowlyapp.offer;
 
-import ks.glowlyapp.business.dto.BusinessDto;
 import ks.glowlyapp.offer.dto.OfferDto;
 import ks.glowlyapp.offer.dto.OfferShortDto;
 import org.springframework.stereotype.Controller;

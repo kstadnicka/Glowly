@@ -11,7 +11,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     List<Appointment> findAllByUser_Id(Long userId);
     List<Appointment> findAllByOffer_Business_Id(Long businessId);
-    List<Appointment> findAllByData(LocalDateTime data);
     boolean existsByUserIdAndData(Long userId, LocalDateTime dateTime);
     List<Appointment> findAllByAddressId(long addressId);
 }

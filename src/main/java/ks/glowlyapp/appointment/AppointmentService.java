@@ -47,13 +47,6 @@ public class AppointmentService {
                 .toList();
     }
 
-    public List<AppointmentDto> getAppointmentByDate(LocalDateTime data){
-        validateData(data);
-        return appointmentRepository.findAllByData(data)
-                .stream()
-                .map(appointmentDtoMapper::map)
-                .toList();
-    }
 
     public boolean isSlotAvailable(LocalDateTime dateTime, long addressId){
         List<Appointment> appointments = appointmentRepository.findAllByAddressId(addressId);
@@ -93,7 +86,16 @@ public class AppointmentService {
                 .map(appointmentDtoMapper::map)
                 .toList();
     }
-    
+
+    public List<AppointmentDto> getFutureAppointments(long userId) {
+        getUserById(userId);
+        LocalDateTime now = LocalDateTime.now();
+        return appointmentRepository.findAllByUser_Id(userId).stream()
+                .filter(appointment -> appointment.getData().isAfter(now))
+                .map(appointmentDtoMapper::map)
+                .toList();
+    }
+
     @Transactional
     public void createNewAppointment(AppointmentDto appointmentDto, Long userId, Long businessId) {
         User user = getUserById(userId);
@@ -125,23 +127,11 @@ public class AppointmentService {
     }
 
 
-
     @Transactional
     public void cancelAppointment(long appointmentId){
         appointmentRepository.deleteById(appointmentId);
     }
 
-    private static void validateData(LocalDateTime data) {
-        if (data ==null){
-            throw new IllegalArgumentException("Appointment date cannot be null");
-        }
-        if (data.isBefore(LocalDateTime.now().minusYears(1))){
-            throw new IllegalArgumentException("Date is too far in the past");
-        }
-        if (data.isAfter(LocalDateTime.now().plusYears(2))){
-            throw new IllegalArgumentException("Data is too far in the future");
-        }
-    }
 
     private void validateAppointmentDto(AppointmentDto dto) {
         if (dto == null) throw new IllegalArgumentException("Appointment data cannot be null");
