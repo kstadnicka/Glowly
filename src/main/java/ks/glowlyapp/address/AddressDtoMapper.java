@@ -1,6 +1,6 @@
-package ks.glowlyapp.address.dto;
+package ks.glowlyapp.address;
 
-import ks.glowlyapp.address.Address;
+import ks.glowlyapp.address.dto.AddressDto;
 import org.springframework.stereotype.Component;
 
 @Component

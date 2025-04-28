@@ -2,65 +2,48 @@ package ks.glowlyapp.user;
 
 import ks.glowlyapp.user.dto.UserRegistrationDto;
 import ks.glowlyapp.user.dto.UserResponseDto;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Optional;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/users")
 public class UserController {
-    public static final String NOTIFICATION_ATTRIBUTE = "notification";
 
-    UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @GetMapping("/users")
-    public String getAllUsers(){
-        userService.getAllUsers();
-        return "all-users";
+    @GetMapping
+    public List<UserResponseDto> getAllUsers() {
+        return userService.getAllUsers();
     }
 
-    @GetMapping("users/{id}")
-    public String getUserById(@PathVariable long id, Model model){
-        Optional<UserResponseDto> userById = userService.getUserById(id);
-        userById.ifPresent(user->model.addAttribute("user", user));
-        return "user";
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/users/new")
-    public String newUser(UserRegistrationDto userRegistrationDto, RedirectAttributes redirectAttributes){
+    @PostMapping
+    public ResponseEntity<String> createNewUser(@RequestBody UserRegistrationDto userRegistrationDto) {
         userService.createNewUser(userRegistrationDto);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Rejestracja udana!");
-        return "redirect:/";
+        return ResponseEntity.ok("User created successfully");
     }
 
-    @GetMapping("/users/new")
-    public String newUserForm(Model model){
-        UserRegistrationDto user = new UserRegistrationDto();
-        model.addAttribute("user", user);
-        return "user-form";
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateUser(@PathVariable long id, @RequestBody UserResponseDto userResponseDto) {
+        userService.updateUserDetails(userResponseDto, id);
+        return ResponseEntity.ok("User updated successfully");
     }
 
-    @PostMapping("/users/update")
-    public String updateUser(@RequestParam long id, UserResponseDto userResponseDto, RedirectAttributes redirectAttributes){
-        userService.updateUserDetails(userResponseDto,id);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Dane zostały zaktualizowane!");
-        return "redirect:/user/{id}";
-    }
-
-    @PostMapping("users/delete")
-    String deleteUser(@RequestParam long id, RedirectAttributes redirectAttributes){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable long id) {
         userService.deleteUser(id);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Konto usunięte");
-        return "redirect:/";
+        return ResponseEntity.ok("User deleted successfully");
     }
-
-
-
-
 }
