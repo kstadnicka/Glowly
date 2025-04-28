@@ -20,7 +20,7 @@ public class Business {
     private Owner owner;
     @OneToOne
     Address address;
-    @OneToMany(mappedBy = "offer")
+    @OneToMany(mappedBy = "business")
     private List<Offer> offersList = new ArrayList<>();
 
 }

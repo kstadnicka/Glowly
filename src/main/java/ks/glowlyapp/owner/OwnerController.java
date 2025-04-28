@@ -2,65 +2,50 @@ package ks.glowlyapp.owner;
 
 import ks.glowlyapp.owner.dto.OwnerRegistrationDto;
 import ks.glowlyapp.owner.dto.OwnerResponseDto;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api/owners")
 public class OwnerController {
-    public static final String NOTIFICATION_ATTRIBUTE = "notification";
 
-    OwnerService ownerService;
+    private final OwnerService ownerService;
 
     public OwnerController(OwnerService ownerService) {
         this.ownerService = ownerService;
     }
 
-    @GetMapping("/owners")
-    public String getAllOwners(){
-        ownerService.getAllOwners();
-        return "all-owners";
+    @GetMapping
+    public List<OwnerResponseDto> getAllOwners(){
+        return ownerService.getAllOwners();
     }
 
-    @GetMapping("owners/{id}")
-    public String findOwnerById(@PathVariable long id, Model model){
-        Optional<OwnerResponseDto> ownerById = ownerService.getOwnerById(id);
-        ownerById.ifPresent(owner->model.addAttribute("owner", owner));
-        return "owner";
+    @GetMapping("/{id}")
+    public ResponseEntity<OwnerResponseDto> getOwnerById(@PathVariable long id){
+        return ownerService.getOwnerById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/owners/new")
-    public String newOwner(OwnerRegistrationDto ownerRegistrationDto, RedirectAttributes redirectAttributes){
+    @PostMapping
+    public ResponseEntity<String> newOwner(@RequestBody OwnerRegistrationDto ownerRegistrationDto){
         ownerService.createNewOwner(ownerRegistrationDto);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Rejestracja udana!");
-        return "redirect:/";
+        return ResponseEntity.ok("Owner created successfully");
     }
 
-    @GetMapping("/owners/new")
-    public String newOwnerForm(Model model){
-        OwnerRegistrationDto owner = new OwnerRegistrationDto();
-        model.addAttribute("owner", owner);
-        return "owner-form";
-    }
 
-    @PostMapping("/owners/update")
-    public String updateOwner(@RequestParam long id, OwnerRegistrationDto ownerResponseDto, RedirectAttributes redirectAttributes){
+    @PostMapping("/{id}")
+    public ResponseEntity<String> updateOwner(@PathVariable long id,@RequestBody OwnerRegistrationDto ownerResponseDto){
         ownerService.updateOwnerDetails(ownerResponseDto,id);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Dane zostały zaktualizowane!");
-        return "redirect:/owner/{id}";
+        return ResponseEntity.ok("Owner updated successfully");
     }
 
-    @PostMapping("owners/delete")
-    String deleteOwner(@RequestParam long id, RedirectAttributes redirectAttributes){
+  @DeleteMapping("/{id}")
+   public ResponseEntity<String> deleteOwner(@PathVariable long id){
         ownerService.deleteOwner(id);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Konto usunięte");
-        return "redirect:/";
+        return ResponseEntity.ok("Owner deleted successfully");
     }
 
 }
