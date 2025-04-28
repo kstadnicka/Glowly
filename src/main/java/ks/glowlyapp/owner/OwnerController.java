@@ -36,13 +36,14 @@ public class OwnerController {
     }
 
 
-    @PostMapping("/{id}")
-    public ResponseEntity<String> updateOwner(@PathVariable long id,@RequestBody OwnerRegistrationDto ownerResponseDto){
-        ownerService.updateOwnerDetails(ownerResponseDto,id);
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateOwner(@PathVariable long id, @RequestBody OwnerResponseDto ownerResponseDto) {
+        ownerService.updateOwnerDetails(ownerResponseDto, id);
         return ResponseEntity.ok("Owner updated successfully");
     }
 
-  @DeleteMapping("/{id}")
+
+    @DeleteMapping("/{id}")
    public ResponseEntity<String> deleteOwner(@PathVariable long id){
         ownerService.deleteOwner(id);
         return ResponseEntity.ok("Owner deleted successfully");

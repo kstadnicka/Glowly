@@ -19,5 +19,10 @@ public class ValidationUtil {
     public void validatePhoneNumber(String phoneNumber) {
         validateNotNull(phoneNumber, "Phone number");
     }
+    public void validateStringNotEmpty(String value, String fieldName) {
+        if (value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " cannot be empty");
+        }
+    }
 }
 

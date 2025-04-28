@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -68,26 +67,30 @@ public class OwnerService {
     }
 
     @Transactional
-    public void updateOwnerDetails(OwnerRegistrationDto dto, long id) {
-        validateOwnerRegistrationDto(dto);
-        Owner owner = ownerRepository.findById(id)
+    public void updateOwnerDetails(OwnerResponseDto dto, long id) {
+        validateOwnerResponseDto(dto);
+
+        Owner ownerToUpdate = ownerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
 
-        owner.setEmail(dto.getEmail());
-        owner.setPhoneNumber(dto.getPhoneNumber());
-        owner.setPassword(dto.getPassword());
+        if (dto.getFirstName() != null) {
+            ownerToUpdate.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            ownerToUpdate.setLastName(dto.getLastName());
+        }
+        if (dto.getEmail() != null) {
+            ownerToUpdate.setEmail(dto.getEmail());
+        }
+        if (dto.getPhoneNumber() != null) {
+            ownerToUpdate.setPhoneNumber(dto.getPhoneNumber());
+        }
+        if (dto.getBusinessList() != null) {
+            ownerToUpdate.setBusinessList(dto.getBusinessList());
+        }
 
-        List<Business> updateBusinessList = Optional.ofNullable(dto.getBusinessIds())
-                .orElse(List.of())
-                .stream()
-                .map(businessRepository::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-
-        owner.setBusinessList(updateBusinessList);
+        ownerRepository.save(ownerToUpdate);
     }
-
     @Transactional
     public void deleteOwner(long id) {
         ownerRepository.deleteById(id);
@@ -98,4 +101,17 @@ public class OwnerService {
         validationUtil.validateEmailAndPassword(dto.getEmail(), dto.getPassword());
         validationUtil.validatePhoneNumber(dto.getPhoneNumber());
     }
+
+    private void validateOwnerResponseDto(OwnerResponseDto dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("OwnerResponseDto cannot be null");
+        }
+        if (dto.getFirstName() == null && dto.getLastName() == null &&
+                dto.getEmail() == null && dto.getPhoneNumber() == null &&
+                (dto.getBusinessList() == null || dto.getBusinessList().isEmpty())) {
+            throw new IllegalArgumentException("At least one field must be provided to update the owner");
+        }
+    }
+
+
 }

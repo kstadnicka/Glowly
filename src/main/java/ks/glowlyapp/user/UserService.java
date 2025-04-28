@@ -66,10 +66,19 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-        user.setEmail(dto.getEmail());
-        user.setPhoneNumber(dto.getPhoneNumber());
+        if (dto.getFirstName() != null) {
+            user.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            user.setLastName(dto.getLastName());
+        }
+        if (dto.getEmail() != null) {
+            user.setEmail(dto.getEmail());
+        }
+        if (dto.getPhoneNumber() != null) {
+            user.setPhoneNumber(dto.getPhoneNumber());
+        }
+
         userRepository.save(user);
     }
 
@@ -85,9 +94,20 @@ public class UserService {
 
     private void validateUserResponseDto(UserResponseDto dto) {
         validationUtil.validateNotNull(dto, "UserResponseDto");
-        validationUtil.validateNotNull(dto.getFirstName(), "First name");
-        validationUtil.validateNotNull(dto.getLastName(), "Last name");
-        validationUtil.validateNotNull(dto.getEmail(), "Email");
-        validationUtil.validatePhoneNumber(dto.getPhoneNumber());
+
+        if (dto.getFirstName() != null) {
+            validationUtil.validateStringNotEmpty(dto.getFirstName(), "First name");
+        }
+
+        if (dto.getLastName() != null) {
+            validationUtil.validateStringNotEmpty(dto.getLastName(), "Last name");
+        }
+
+        if (dto.getEmail() != null) {
+            validationUtil.validateStringNotEmpty(dto.getEmail(), "Email");
+        }
+        if (dto.getPhoneNumber() != null) {
+            validationUtil.validatePhoneNumber(dto.getPhoneNumber());
+        }
     }
 }
