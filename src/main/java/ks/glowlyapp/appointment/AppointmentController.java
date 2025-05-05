@@ -2,18 +2,16 @@ package ks.glowlyapp.appointment;
 
 import ks.glowlyapp.appointment.dto.AppointmentDto;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/appointments")
 public class AppointmentController {
-    public static final String NOTIFICATION_ATTRIBUTE = "notification";
 
     AppointmentService appointmentService;
 
@@ -21,80 +19,61 @@ public class AppointmentController {
         this.appointmentService = appointmentService;
     }
 
-    @GetMapping("/appointments/user/{id}/all")
-    public String getAllAppointmentsByUsers(@PathVariable long id, Model model) {
+    @GetMapping("/user/{id}/all")
+    public ResponseEntity<List<AppointmentDto>> getAllAppointmentsByUsers(@PathVariable long id) {
         List<AppointmentDto> appointments = appointmentService.getAppointmentByUser(id);
-        model.addAttribute("appointments", appointments);
-        return "appointments-list";
+        return ResponseEntity.ok(appointments);
     }
 
 
-    @GetMapping("/appointments/business/{id}")
-    public String getAllAppointmentsByBusiness(@PathVariable long id, Model model) {
+    @GetMapping("/business/{id}/all")
+    public ResponseEntity<List<AppointmentDto>> getAllAppointmentsByBusiness(@PathVariable long id) {
         List<AppointmentDto> appointments = appointmentService.getAppointmentByBusiness(id);
-        model.addAttribute("appointments", appointments);
-        return "appointments-list";
+        return ResponseEntity.ok(appointments);
     }
 
-    @GetMapping("/appointments/available")
-    public String getAvailableSlot(
+    @GetMapping("/available")
+    public ResponseEntity<List<LocalTime>> getAvailableSlot(
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam("addressId") Long addressId,
-            Model model
+            @RequestParam("addressId") Long addressId
     ) {
         List<LocalTime> availableSlots = appointmentService.getAvailableSlots(date, addressId);
-        model.addAttribute("availableSlots", availableSlots);
-        return "available-slots";
+        return ResponseEntity.ok(availableSlots);
     }
 
 
-    @GetMapping("/appointments/user/{id}/today")
-    public String getAppointmentsForToday(@PathVariable long userId, Model model) {
+    @GetMapping("/user/{id}/today")
+    public ResponseEntity<List<AppointmentDto>> getAppointmentsForToday(@PathVariable long userId) {
         List<AppointmentDto> appointments = appointmentService.getAppointmentsForToday(userId);
-        model.addAttribute("appointments", appointments);
-        return "appointments-list";
+        return ResponseEntity.ok(appointments);
     }
 
-    @GetMapping("/appointments/user/{id}/future")
-    public String getFutureAppointments(@PathVariable long id, Model model) {
+    @GetMapping("/user/{id}/future")
+    public ResponseEntity<List<AppointmentDto>> getFutureAppointments(@PathVariable long id) {
         List<AppointmentDto> futureAppointments = appointmentService.getFutureAppointments(id);
-        model.addAttribute("appointments", futureAppointments);
-        return "appointments-list";
+        return ResponseEntity.ok(futureAppointments);
     }
 
-
-    @PostMapping("/appointments/new")
-    public String createNewAppointment(
-            @ModelAttribute AppointmentDto appointmentDto,
+    @PostMapping
+    public ResponseEntity<String> createNewAppointment(
+            @RequestBody AppointmentDto appointmentDto,
             @RequestParam Long businessId,
-            @RequestParam Long userId,
-            RedirectAttributes redirectAttributes) {
+            @RequestParam Long userId) {
         appointmentService.createNewAppointment(appointmentDto, userId, businessId);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE, "Wizyta umiówiona!");
-        return "redirect:/";
+        return ResponseEntity.ok("Appointment booked successfully");
     }
 
-    @GetMapping("/appointments/new")
-    public String newAppointmentForm(Model model) {
-        AppointmentDto appointment = new AppointmentDto();
-        model.addAttribute("appointment", appointment);
-        return "appointment-form";
-    }
-
-    @PostMapping("/appointments/update")
-    public String updateAppointment(@RequestParam Long appointmentId,
-                                     @RequestParam Long userId,
-                                     @ModelAttribute AppointmentDto appointmentDto,
-                                     RedirectAttributes redirectAttributes) {
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateAppointment(@RequestParam Long appointmentId,
+                                                    @RequestParam Long userId,
+                                                    @RequestBody AppointmentDto appointmentDto) {
         appointmentService.updateAppointmentDetails(appointmentDto, appointmentId, userId);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE, "Pomyślnie zaktualizowano informację o wizycie");
-        return "redirect:/";
+        return ResponseEntity.ok("Appointment updated successfully");
     }
 
-    @PostMapping("/appointments/cancel")
-    public String cancelAppointment(long appointmentId, RedirectAttributes redirectAttributes) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> cancelAppointment(long appointmentId) {
         appointmentService.cancelAppointment(appointmentId);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE, "Wizyta odwołana");
-        return "redirect:/";
+        return ResponseEntity.ok("Appointment canceled successfully");
     }
 }
