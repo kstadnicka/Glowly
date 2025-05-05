@@ -112,6 +112,4 @@ public class OwnerService {
             throw new IllegalArgumentException("At least one field must be provided to update the owner");
         }
     }
-
-
 }

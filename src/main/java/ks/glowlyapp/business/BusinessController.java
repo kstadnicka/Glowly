@@ -2,6 +2,7 @@ package ks.glowlyapp.business;
 
 import ks.glowlyapp.business.dto.BusinessDto;
 import ks.glowlyapp.owner.dto.OwnerRegistrationDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -9,50 +10,40 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Optional;
 
-@Controller
+@RestController
+@RequestMapping("/api/business")
 public class BusinessController {
-    public static final String NOTIFICATION_ATTRIBUTE = "notification";
     BusinessService businessService;
 
-    @GetMapping("/business/{name}")
-    public String findBusinessByName(@PathVariable String name, Model model){
-        Optional<BusinessDto> businessByName = businessService.findBusinessByName(name);
-        businessByName.ifPresent(business->model.addAttribute("business", business));
-        return "business";
+    @GetMapping("/{name}")
+    public ResponseEntity<BusinessDto> getBusinessByName(@PathVariable String name){
+       return businessService.findBusinessByName(name)
+               .map(ResponseEntity::ok)
+               .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/businnes/{id}")
-    public String findBusinessById(@PathVariable Long id,Model model){
-        Optional<BusinessDto> businessById = businessService.findBusinessById(id);
-        businessById.ifPresent(business->model.addAttribute("business", business));
-        return "business";
+    @GetMapping("/{id}")
+    public ResponseEntity<BusinessDto> findBusinessById(@PathVariable Long id){
+        return businessService.findBusinessById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/business/new")
-    public String newBusiness(BusinessDto businessDto,Long ownerId, RedirectAttributes redirectAttributes){
+    @PostMapping
+    public ResponseEntity<String> newBusiness(@RequestBody BusinessDto businessDto,Long ownerId){
         businessService.addBusinessToOwner(businessDto,ownerId);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Dodano nową firmę");
-        return "redirect:/";
+        return ResponseEntity.ok("Business created successfully");
     }
 
-    @GetMapping("/business/new")
-    public String newBusinessForm(Model model){
-        BusinessDto business = new BusinessDto();
-        model.addAttribute("business", business);
-        return "business-form";
-    }
-
-    @PostMapping("/business/update")
-    public String updateBusiness(@RequestParam Long id, BusinessDto businessDto, RedirectAttributes redirectAttributes){
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateBusiness(@RequestParam Long id,@RequestBody BusinessDto businessDto){
         businessService.updateBusinessDetails(businessDto,id);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Pomyślnie zaktualizowano informacje!");
-        return "redirect:/business";
+        return ResponseEntity.ok("Business updated successfully");
     }
 
-    @PostMapping("/business/delete")
-    public String deleteBusiness(@RequestParam Long id, RedirectAttributes redirectAttributes){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBusiness(@RequestParam Long id){
         businessService.deleteBusiness(id);
-        redirectAttributes.addFlashAttribute(NOTIFICATION_ATTRIBUTE,"Firma usunięta");
-        return "redirect:/";
+        return ResponseEntity.ok("Business deleted successfully");
     }
 }
