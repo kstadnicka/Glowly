@@ -1,9 +1,6 @@
 package ks.glowlyapp.address;
 
 import ks.glowlyapp.address.dto.AddressDto;
-import ks.glowlyapp.appointment.Appointment;
-import ks.glowlyapp.appointment.dto.AppointmentDto;
-import ks.glowlyapp.business.Business;
 import ks.glowlyapp.business.BusinessRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,12 +9,10 @@ import java.util.Optional;
 
 @Service
 public class AddressService {
-    private final BusinessRepository businessRepository;
     private final AddressRepository addressRepository;
     private final AddressDtoMapper addressDtoMapper;
 
-    public AddressService(BusinessRepository businessRepository, AddressRepository addressRepository, AddressDtoMapper addressDtoMapper) {
-        this.businessRepository = businessRepository;
+    public AddressService(AddressRepository addressRepository, AddressDtoMapper addressDtoMapper) {
         this.addressRepository = addressRepository;
         this.addressDtoMapper = addressDtoMapper;
     }
