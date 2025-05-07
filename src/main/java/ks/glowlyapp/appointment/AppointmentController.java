@@ -64,16 +64,16 @@ public class AppointmentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateAppointment(@RequestParam Long appointmentId,
-                                                    @RequestParam Long userId,
+    public ResponseEntity<String> updateAppointment(@PathVariable("id") Long appointmentId,
+                                                    @PathVariable("id") Long userId,
                                                     @RequestBody AppointmentDto appointmentDto) {
         appointmentService.updateAppointmentDetails(appointmentDto, appointmentId, userId);
         return ResponseEntity.ok("Appointment updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> cancelAppointment(long appointmentId) {
-        appointmentService.cancelAppointment(appointmentId);
+    public ResponseEntity<String> cancelAppointment(@PathVariable("id") long id) {
+        appointmentService.cancelAppointment(id);
         return ResponseEntity.ok("Appointment canceled successfully");
     }
 }

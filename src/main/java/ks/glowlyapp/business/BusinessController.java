@@ -36,13 +36,13 @@ public class BusinessController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateBusiness(@RequestParam Long id,@RequestBody BusinessDto businessDto){
+    public ResponseEntity<String> updateBusiness(@PathVariable Long id,@RequestBody BusinessDto businessDto){
         businessService.updateBusinessDetails(businessDto,id);
         return ResponseEntity.ok("Business updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBusiness(@RequestParam Long id){
+    public ResponseEntity<String> deleteBusiness(@PathVariable Long id){
         businessService.deleteBusiness(id);
         return ResponseEntity.ok("Business deleted successfully");
     }

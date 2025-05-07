@@ -41,13 +41,13 @@ public class OfferController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateOffer(@RequestParam Long id, @RequestBody OfferDto offerDto){
+    public ResponseEntity<String> updateOffer(@PathVariable Long id, @RequestBody OfferDto offerDto){
         offerService.updateOfferDetails(offerDto,id);
         return ResponseEntity.ok("Offer updated successfully");
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteOffer(@RequestParam Long id, @RequestBody OfferDto offerDto){
+    public ResponseEntity<String> deleteOffer(@PathVariable Long id, @RequestBody OfferDto offerDto){
         offerService.deleteOffer(id);
         return ResponseEntity.ok("Offer deleted successfully");
     }
