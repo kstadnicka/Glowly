@@ -17,8 +17,8 @@ public class AddressService {
         this.addressDtoMapper = addressDtoMapper;
     }
 
-    public Optional<AddressDto> findAddressByBusiness(long id) {
-        return addressRepository.findAddressByBusinessId(id)
+    public Optional<AddressDto> findAddressByBusinessId(long businessId) {
+        return addressRepository.findAddressByBusiness_Id(businessId)
                 .map(addressDtoMapper::map);
     }
 
