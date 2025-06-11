@@ -33,12 +33,6 @@ public class UserService {
                 .map(userRegistrationDtoMapper::map);
     }
 
-    public Optional<UserResponseDto> findUserByLastName(String lastName) {
-        validationUtil.validateNotNull(lastName, "Last name");
-        return userRepository.findUserByLastName(lastName)
-                .map(userResponseDtoMapper::map);
-    }
-
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll()
                 .stream()
