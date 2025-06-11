@@ -6,6 +6,7 @@ import ks.glowlyapp.validation.ValidationUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,29 +37,25 @@ class UserServiceTest {
 
     private final long id = 1L;
     private final String email = "test@example.com";
-    private final String email2 = "another@example.com";
+    private final String password = "testPass";
     private User user;
-    private User user2;
     private UserRegistrationDto userRegistrationDto;
     private UserResponseDto userResponseDto;
-    private UserResponseDto userResponseDto2;
 
     @BeforeEach
-    void  setUp(){
+    void setUp() {
         user = new User();
         user.setEmail(email);
         userRegistrationDto = new UserRegistrationDto();
         userRegistrationDto.setEmail(email);
-        user2 = new User();
-        user2.setEmail(email2);
-
+        userRegistrationDto.setPassword(password);
         userResponseDto = new UserResponseDto();
         userResponseDto.setEmail(email);
-        userResponseDto2 = new UserResponseDto();
-        userResponseDto2.setEmail(email2);
+
     }
+
     @Test
-    void shouldReturnUserRegistrationDtoWhenUserExist(){
+    void shouldReturnUserRegistrationDtoWhenUserExist() {
         //given
         doNothing().when(validationUtil).validateNotNull(email, "Email");
         when(userRepository.findUserByEmail(email)).thenReturn(Optional.of(user));
@@ -71,15 +68,15 @@ class UserServiceTest {
         assertTrue(result.isPresent());
         assertEquals(userRegistrationDto, result.get());
 
-        verify(validationUtil).validateNotNull(email,"Email");
+        verify(validationUtil).validateNotNull(email, "Email");
         verify(userRepository).findUserByEmail(email);
         verify(userRegistrationDtoMapper).map(user);
     }
 
     @Test
-    void shouldReturnEmptyOptionalWhenUserIsNotFound(){
+    void shouldReturnEmptyOptionalWhenUserIsNotFound() {
         //given
-        doNothing().when(validationUtil).validateNotNull(email,"Email");
+        doNothing().when(validationUtil).validateNotNull(email, "Email");
         when(userRepository.findUserByEmail(email)).thenReturn(Optional.empty());
 
         //when
@@ -88,33 +85,38 @@ class UserServiceTest {
         //then
         assertTrue(result.isEmpty());
 
-        verify(validationUtil).validateNotNull(email,"Email");
+        verify(validationUtil).validateNotNull(email, "Email");
         verify(userRepository).findUserByEmail(email);
         verify(userRegistrationDtoMapper, never()).map(any());
     }
 
     @Test
-    void shouldThrowExceptionWhenEmailIsNull(){
+    void shouldThrowExceptionInFindUserByEmailWhenEmailIsNull() {
         String nullEmail = null;
 
         //given
-        doThrow(new IllegalArgumentException("Email cannot be null")).when(validationUtil).validateNotNull(nullEmail,"Email");
+        doThrow(new IllegalArgumentException("Email cannot be null")).when(validationUtil).validateNotNull(nullEmail, "Email");
 
         //then when
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                ()-> userService.findUserByEmail(nullEmail));
+                () -> userService.findUserByEmail(nullEmail));
 
         assertEquals("Email cannot be null", exception.getMessage());
 
-        verify(validationUtil).validateNotNull(nullEmail,"Email");
-        verifyNoMoreInteractions(userRepository,userRegistrationDtoMapper);
+        verify(validationUtil).validateNotNull(nullEmail, "Email");
+        verifyNoMoreInteractions(userRepository, userRegistrationDtoMapper);
     }
 
     @Test
-    void shouldReturnAllUsersWhenExist(){
+    void shouldReturnAllUsersWhenExist() {
 
         //given
-        List<User> users = List.of(user,user2);
+        User user2 = new User();
+        user2.setEmail("another@example.com");
+
+        UserResponseDto userResponseDto2 = new UserResponseDto();
+        userResponseDto2.setEmail("another@example.com");
+        List<User> users = List.of(user, user2);
         when(userRepository.findAll()).thenReturn(users);
         when(userResponseDtoMapper.map(user)).thenReturn(userResponseDto);
         when(userResponseDtoMapper.map(user2)).thenReturn(userResponseDto2);
@@ -123,9 +125,9 @@ class UserServiceTest {
         List<UserResponseDto> allUsers = userService.getAllUsers();
 
         //then
-        assertEquals(2,allUsers.size());
-        assertEquals(userResponseDto,allUsers.get(0));
-        assertEquals(userResponseDto2,allUsers.get(1));
+        assertEquals(2, allUsers.size());
+        assertEquals(userResponseDto, allUsers.get(0));
+        assertEquals(userResponseDto2, allUsers.get(1));
 
         verify(userRepository).findAll();
         verify(userResponseDtoMapper).map(user);
@@ -133,7 +135,7 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldReturnEmptyListWhenUsersNotExist(){
+    void shouldReturnEmptyListWhenUsersNotExist() {
 
         //given
         List<User> users = List.of();
@@ -143,13 +145,13 @@ class UserServiceTest {
         List<UserResponseDto> allUsers = userService.getAllUsers();
 
         //then
-        assertEquals(0,allUsers.size());
+        assertEquals(0, allUsers.size());
         verify(userRepository).findAll();
 
     }
 
     @Test
-    void shouldReturnUserByIdWhenExist(){
+    void shouldReturnUserByIdWhenExist() {
         //given
         when(userRepository.findById(id)).thenReturn(Optional.of(user));
         when(userResponseDtoMapper.map(user)).thenReturn(userResponseDto);
@@ -159,14 +161,14 @@ class UserServiceTest {
 
         //then
         assertTrue(result.isPresent());
-        assertEquals(userResponseDto,result.get());
+        assertEquals(userResponseDto, result.get());
 
         verify(userRepository).findById(id);
         verify(userResponseDtoMapper).map(user);
     }
 
     @Test
-    void shouldReturnEmptyOptionalWhenUserNotExist(){
+    void shouldReturnEmptyOptionalWhenUserNotExist() {
         //given
         when(userRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -179,4 +181,110 @@ class UserServiceTest {
         verify(userRepository).findById(id);
         verify(userResponseDtoMapper, never()).map(any());
     }
+
+    @Test
+    void shouldSaveUserWhenRegistrationDtoIsValid() {
+        //given
+        doNothing().when(validationUtil).validateNotNull(userRegistrationDto, "UserRegistrationDto");
+        doNothing().when(validationUtil).validateEmailAndPassword(email, password);
+
+        //when
+        userService.createNewUser(userRegistrationDto);
+
+        //then
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+
+        User savedUser = userCaptor.getValue();
+        assertEquals(email, savedUser.getEmail());
+        assertEquals(password,savedUser.getPassword());
+
+        verify(validationUtil).validateNotNull(userRegistrationDto, "UserRegistrationDto");
+        verify(validationUtil).validateEmailAndPassword(email,password);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRegistrationDtoIsNull(){
+        //given
+        UserRegistrationDto userRegistrationDtoNull = null;
+        doThrow(new IllegalArgumentException("UserRegistrationDto cannot be null")).when(validationUtil).validateNotNull(userRegistrationDtoNull, "UserRegistrationDto");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> userService.createNewUser(userRegistrationDtoNull));
+
+        assertEquals("UserRegistrationDto cannot be null", exception.getMessage());
+
+        verify(validationUtil).validateNotNull(userRegistrationDtoNull, "UserRegistrationDto");
+        verifyNoMoreInteractions(userRepository, userRegistrationDtoMapper);
+    }
+
+    @Test
+    void shouldThrowExceptionInCreateNewUserWhenEmailIsNull(){
+
+        //given
+        UserRegistrationDto userWithNullEmail = new UserRegistrationDto();
+        userWithNullEmail.setEmail(null);
+        userWithNullEmail.setPassword("somePassword");
+        doNothing().when(validationUtil).validateNotNull(userWithNullEmail,"UserRegistrationDto");
+        doThrow(new IllegalArgumentException("Email cannot be null"))
+                .when(validationUtil)
+                .validateEmailAndPassword(null,"somePassword");
+
+        //then when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> userService.createNewUser(userWithNullEmail));
+
+        assertEquals("Email cannot be null", exception.getMessage());
+
+        verify(validationUtil).validateNotNull(userWithNullEmail, "UserRegistrationDto");
+        verify(validationUtil).validateEmailAndPassword(null, "somePassword");
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void shouldThrowExceptionInCreateNewUserWhenPasswordIsNull(){
+
+        //given
+        UserRegistrationDto userWithNullPassword = new UserRegistrationDto();
+        userWithNullPassword.setEmail("some@email.com");
+        userWithNullPassword.setPassword(null);
+        doNothing().when(validationUtil).validateNotNull(userWithNullPassword,"UserRegistrationDto");
+        doThrow(new IllegalArgumentException("Password cannot be null"))
+                .when(validationUtil)
+                .validateEmailAndPassword("some@email.com",null);
+
+        //then when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> userService.createNewUser(userWithNullPassword));
+
+        assertEquals("Password cannot be null", exception.getMessage());
+
+        verify(validationUtil).validateNotNull(userWithNullPassword, "UserRegistrationDto");
+        verify(validationUtil).validateEmailAndPassword("some@email.com", null);
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void shouldNotCallSaveWhenValidationFails(){
+        //given
+        UserRegistrationDto userWithNullEmail = new UserRegistrationDto();
+        userWithNullEmail.setEmail(null);
+        userWithNullEmail.setPassword("somePassword");
+        doNothing().when(validationUtil).validateNotNull(userWithNullEmail,"UserRegistrationDto");
+        doThrow(new IllegalArgumentException("Email cannot be null"))
+                .when(validationUtil)
+                .validateEmailAndPassword(null,"somePassword");
+
+        //then when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> userService.createNewUser(userWithNullEmail));
+
+        assertEquals("Email cannot be null", exception.getMessage());
+
+        verify(validationUtil).validateNotNull(userWithNullEmail, "UserRegistrationDto");
+        verify(validationUtil).validateEmailAndPassword(null, "somePassword");
+        verify(userRepository, never()).save(any());
+    }
+
+
 }
