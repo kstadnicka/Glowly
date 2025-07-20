@@ -286,5 +286,70 @@ class UserServiceTest {
         verify(userRepository, never()).save(any());
     }
 
+    @Test
+    void shouldUpdateUserDetailsWhenAllFieldsPresent(){
+        //given
+        UserResponseDto dto = new UserResponseDto();
+        dto.setFirstName("Jan");
+        dto.setLastName("Nowak");
+        dto.setEmail("jan.nowak@mail.com");
+        dto.setPhoneNumber("123456789");
 
+        User existingUser = new User();
+        existingUser.setId(id);
+        existingUser.setFirstName("Adam");
+        existingUser.setLastName("Kowalski");
+        existingUser.setEmail("old.email@mail.com");
+        existingUser.setPhoneNumber("000000000");
+
+        doNothing().when(validationUtil).validateNotNull(any(), anyString());
+        doNothing().when(validationUtil).validateStringNotEmpty(anyString(), anyString());
+        doNothing().when(validationUtil).validatePhoneNumber(anyString());
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existingUser));
+
+        //when
+        userService.updateUserDetails(dto,id);
+
+        //then
+        assertEquals("Jan", existingUser.getFirstName());
+        assertEquals("Nowak", existingUser.getLastName());
+        assertEquals("jan.nowak@mail.com", existingUser.getEmail());
+        assertEquals("123456789", existingUser.getPhoneNumber());
+
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    void shouldUpdateOnlyFirstNameWhenOnlyFirstNameProvided(){
+        //given
+        UserResponseDto dto = new UserResponseDto();
+        dto.setFirstName("Jan");
+        dto.setLastName(null);
+        dto.setEmail(null);
+        dto.setPhoneNumber(null);
+
+        User existingUser = new User();
+        existingUser.setId(id);
+        existingUser.setFirstName("Adam");
+        existingUser.setLastName("Kowalski");
+        existingUser.setEmail("old.email@mail.com");
+        existingUser.setPhoneNumber("000000000");
+
+        doNothing().when(validationUtil).validateNotNull(any(), anyString());
+        doNothing().when(validationUtil).validateStringNotEmpty(anyString(), anyString());
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existingUser));
+
+        //when
+        userService.updateUserDetails(dto,id);
+
+        //then
+        assertEquals("Jan", existingUser.getFirstName());
+        assertEquals("Kowalski", existingUser.getLastName());
+        assertEquals("old.email@mail.com", existingUser.getEmail());
+        assertEquals("000000000", existingUser.getPhoneNumber());
+
+        verify(userRepository).save(existingUser);
+    }
 }
