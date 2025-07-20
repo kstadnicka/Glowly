@@ -352,4 +352,100 @@ class UserServiceTest {
 
         verify(userRepository).save(existingUser);
     }
+    @Test
+    void shouldUpdateOnlyNonNullFields(){
+        //given
+        UserResponseDto dto = new UserResponseDto();
+        dto.setFirstName("Jan");
+        dto.setLastName(null);
+        dto.setEmail("new@email.com");
+        dto.setPhoneNumber(null);
+
+        User existingUser = new User();
+        existingUser.setId(id);
+        existingUser.setFirstName("Adam");
+        existingUser.setLastName("Kowalski");
+        existingUser.setEmail("old.email@mail.com");
+        existingUser.setPhoneNumber("000000000");
+
+        doNothing().when(validationUtil).validateNotNull(any(), anyString());
+        doNothing().when(validationUtil).validateStringNotEmpty(anyString(), anyString());
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existingUser));
+
+        //when
+        userService.updateUserDetails(dto,id);
+
+        //then
+        assertEquals("Jan", existingUser.getFirstName());
+        assertEquals("Kowalski", existingUser.getLastName());
+        assertEquals("new@email.com", existingUser.getEmail());
+        assertEquals("000000000", existingUser.getPhoneNumber());
+
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFound(){
+
+        //given
+        Long id = 1L;
+        UserResponseDto dto = new UserResponseDto();
+        dto.setFirstName("Jan");
+        dto.setLastName("Nowak");
+        dto.setEmail("jan.nowak@mail.com");
+        dto.setPhoneNumber("123456789");
+
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when+then
+        RuntimeException exception = assertThrows(RuntimeException.class, ()->
+                userService.updateUserDetails(dto,id)
+        );
+
+        assertEquals("User not found", exception.getMessage());
+
+        verify(userRepository).findById(id);
+        verifyNoMoreInteractions(userRepository); //nie zapisuje użytkowinka skoro nie istnieje;
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDtoIsNull(){
+        //given
+        UserResponseDto dto = null;
+
+        doThrow(new IllegalArgumentException("UserResponseDto cannot be null"))
+                .when(validationUtil)
+                .validateNotNull(isNull(),eq("UserResponseDto"));
+
+
+        //when + then
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.updateUserDetails(dto,id)
+        );
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDtoFieldsInvalid() {
+        // given
+        UserResponseDto dto = new UserResponseDto();
+        dto.setFirstName("Jan");
+        dto.setLastName("");
+        dto.setEmail("new@email.com");
+        dto.setPhoneNumber("123456789");
+
+        doNothing().when(validationUtil).validateNotNull(any(), anyString());
+        doNothing().when(validationUtil).validateStringNotEmpty(eq("Jan"), eq("First name"));
+
+        doThrow(new IllegalArgumentException("Last name cannot be empty"))
+                .when(validationUtil)
+                .validateStringNotEmpty(eq(""), eq("Last name"));
+
+        // when + then
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUserDetails(dto, id));
+
+        verifyNoMoreInteractions(userRepository);
+    }
+
 }
